@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import slugify from 'slugify';
 
 const tourSchema = new mongoose.Schema({
     name: {
@@ -50,6 +51,35 @@ const tourSchema = new mongoose.Schema({
         default: Date.now(),
         select: false
     },
-    startDates: [Date]
+    startDates: [Date],
+    slug: String
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
+
+tourSchema.virtual('durationWeeks').get(function () {
+    return this.duration / 7;
+});
+
+// & The pre middleware is executed before the .save() and .create() methods
+// & Writing the pre middleware
+// & This is a document middleware, but it does not work with insertMany() it only works with .save() and .create();
+// & WE can have multiple pre middlewares
+// & Here we are using the save hook
+tourSchema.pre('save', function (next) {
+    this.slug = slugify(this.name, { lower: true });
+    next();
+
+});
+
+// & The post middleware
+// & The post middleware is executed after the .save() and .create() methods
+
+tourSchema.post('save', function (doc, next) {
+    console.log(doc);
+    next();
+})
+
+
 export const Tour = mongoose.model('Tour', tourSchema);

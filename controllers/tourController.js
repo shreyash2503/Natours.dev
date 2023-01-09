@@ -5,56 +5,10 @@ import express, { query } from 'express';
 // import { fileURLToPath } from 'url';
 // import { dirname } from 'path';
 import { Tour } from '../models/tourModel.js';
+import APIFeatures from '../utils/apiFeatures.js';
 
 // const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`))
 
-class APIFeatures {
-    constructor(query, queryString) {
-        this.query = query;
-        this.queryString = queryString;
-    }
-    filter() {
-        console.log("I was called");
-        const queryObj = { ...this.queryString };
-        const excludedFields = ['page', 'sort', 'limit', 'fields'];
-        excludedFields.forEach(el => delete queryObj[el]);
-        // 2) Advanced filtering
-        let queryStr = JSON.stringify(queryObj);
-        queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
-        console.log(JSON.parse(queryStr))
-        //let query = Tour.find(JSON.parse(queryStr)); // ! find method returns a query
-        this.query = this.query.find(JSON.parse(queryStr));
-        return this;
-    }
-    sorted() {
-        console.log("I was called");
-        if (this.queryString.sort) {
-            const sortBy = this.queryString.sort.split(',').join(' ');
-            console.log(sortBy);
-            this.query = this.query.sort(sortBy);
-        } else {
-            this.query = this.query.sort('-__v');
-        }
-        return this;
-    }
-    fieldLimiting() {
-        console.log("I was called");
-        if (this.queryString.fields) {
-            const fields = this.queryString.fields.split(',').join(' ');
-            this.query = this.query.select(fields);
-        }
-        return this;
-    }
-    pagination() {
-        console.log("I was called");
-        const page = this.queryString.page * 1 || 1;
-        const limit = this.queryString.limit * 1 || 100;
-        const skip = (page - 1) * limit;
-        // page=2&limit=10, 1-10 page1, 11-20 page2, 21-30 page3
-        this.query = this.query.skip(skip).limit(limit);
-        return this;
-    }
-}
 
 export const getAllTours = async (req, res) => {
     try {
@@ -93,10 +47,6 @@ export const getAllTours = async (req, res) => {
         //     const numTours = await Tour.countDocuments();
         //     if (skip >= numTours) throw new Error('This page does not exist');
         // }
-
-
-
-
         //{difficulty: 'easy', duration:{$gte:5}}
         // EXECUTE QUERY
         const tours = await features.query;
@@ -220,7 +170,95 @@ export const deleteTour = async (req, res) => {
     }
 }
 
+export const getTourStats = async (req, res) => {
+    try {
+        const stats = await Tour.aggregate([
+            {
+                $match: { ratingsAverage: { $gte: 4.5 } }
+            },
+            {
+                $group: {
+                    _id: '$difficulty',
+                    numRating: { $sum: '$ratingsQuantity' },
+                    numTours: { $sum: 1 },
+                    avgRating: { $avg: '$ratingsAverage' },
+                    avgPrice: { $avg: '$price' },
+                    minPrice: { $min: '$price' },
+                    maxPrice: { $max: '$price' }
+                }
+            },
+            {
+                $sort: { avgPrice: 1 }
+            }
+        ]);
+        res.status(200).json({
+            status: 'success',
+            data: {
+                stats
+            }
+        })
 
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err
+        })
+    }
+}
+
+export const getMonthlyPlan = async (req, res) => {
+    try {
+        const year = req.params.year * 1; //2021
+        const plan = await Tour.aggregate([
+            {
+                $unwind: '$startDates' //! Stage one of the pipeline
+            },
+            {
+                $match: {  // ! Stage two of the pipeline
+                    startDates: {
+                        $gte: new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`)
+                    }
+                }
+            },
+            {
+                $group: { // ! Stage three of the pipeline
+                    _id: { $month: '$startDates' },
+                    numTourStarts: { $sum: 1 },
+                    tours: { $push: '$name' }
+                }
+            },
+            { // ! Stege four of the pipeline
+                $addFields: { month: '$_id' }
+            },
+            { // ! Stage five of the pipeline
+                $project: {
+                    _id: 0
+                }
+            },
+            { // ! Stage six of the pipeline
+                $sort: { numTourStarts: -1 }
+            },
+            { // ! Srage seven of the pipelin
+                $limit: 12
+            }
+        ]);
+        res.status(200).json({
+            status: 'success',
+            data: {
+                plan
+            }
+        })
+    } catch (err) {
+        res.status(404).json({
+            status: 'fail',
+            data: {
+                message: err
+            }
+        })
+
+    }
+}
 
 
 
