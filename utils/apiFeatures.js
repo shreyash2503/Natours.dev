@@ -18,7 +18,7 @@ class APIFeatures {
         return this;
     }
     sorted() {
-        console.log("I was called");
+        //console.log("I was called");
         if (this.queryString.sort) {
             const sortBy = this.queryString.sort.split(',').join(' ');
             console.log(sortBy);
@@ -29,15 +29,16 @@ class APIFeatures {
         return this;
     }
     fieldLimiting() {
-        console.log("I was called");
+        //console.log("I was called");
         if (this.queryString.fields) {
             const fields = this.queryString.fields.split(',').join(' ');
+            console.log(fields);
             this.query = this.query.select(fields);
         }
         return this;
     }
     pagination() {
-        console.log("I was called");
+        //console.log("I was called");
         const page = this.queryString.page * 1 || 1;
         const limit = this.queryString.limit * 1 || 100;
         const skip = (page - 1) * limit;

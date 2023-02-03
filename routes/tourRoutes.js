@@ -1,13 +1,14 @@
 import express from 'express';
 import fs from 'fs';
 import { getAllTours, createTour, updateTour, deleteTour, getTour, checkBody, aliasTopTours, getTourStats, getMonthlyPlan } from '../controllers/tourController.js';
-
+import { protect } from '../controllers/authController.js';
 
 const Router = express.Router();
 Router.param('id', (req, res, next, val) => {
     console.log(`Tour id is ${val}`);
     next();
 })
+
 
 Router
     .route('/top-5-cheap')
@@ -23,7 +24,7 @@ Router
 
 Router
     .route('/')
-    .get(getAllTours)
+    .get(protect, getAllTours)
     .post(checkBody, createTour);
 
 Router
@@ -33,3 +34,5 @@ Router
     .delete(deleteTour);
 
 export default Router;
+
+// ? Python is the best programming language 
