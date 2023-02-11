@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { User } from "../models/userModel.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import AppError from '../utils/appError.js';
+import { decode } from 'punycode';
 
 
 const signToken = id => {
@@ -53,6 +54,7 @@ export const login = catchAsync(async (req, res, next) => {
 // & Function to protect the routes => This is a middleware function
 
 export const protect = catchAsync(async (req, res, next) => {
+    console.log("Hellow from the protected route");
     // 1). Getting token and check if it exists
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -68,10 +70,16 @@ export const protect = catchAsync(async (req, res, next) => {
     }
     // 2). Verification of token
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-    console.log(decoded);
+    //console.log(decoded);
     // 3). Check if user still exists
+    const freshUser = await User.findById(decoded.id);
+    if (!freshUser) {
+        return next(new AppError('The user belonging to the token no longer exist. ', 401));
+    }
     // 4). Check if user changed password after the token was issued
-
+    if (freshUser.changedPasswordAfter(decoded.iat)) {
+        return next(new AppError('User recently changed the password! Please log in again', 401))
+    }
+    req.user = freshUser;
     next();
-
 })

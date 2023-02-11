@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
             message: 'Confirm Password should match to password'
         }
     },
+    passwordChangedAt: Date
 
 });
 userSchema.pre('save', async function (next) {
@@ -50,5 +51,17 @@ userSchema.methods.correctPassword = async function (candidatePassword, userPass
     // ! this.password will not be available as we have set select to false
     return await bcrypt.compare(candidatePassword, userPassword);
 
+}
+
+// Instance method to check if user has changed password after the token was issued
+userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
+    if (this.passwordChangedAt) {
+        const changedTimeStamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+        console.log(this.passwordChangedAt, JWTTimeStamp);
+        return JWTTimeStamp < changedTimeStamp // Lets say the token was issued at 100 and we changed the password 
+        //after that at 200 so we want the passwrod changed to return true
+    }
+    // ! False means that password is not changed
+    return false;
 }
 export const User = mongoose.model('User', userSchema);
