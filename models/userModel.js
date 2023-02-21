@@ -66,6 +66,11 @@ userSchema.pre('save', function (next) {
     next();
 })
 
+userSchema.pre(/^find/, function (next) {
+    this.find({ active: { $ne: false } });
+    next();
+})
+
 //Instance Method
 userSchema.methods.correctPassword = async function (candidatePassword, userPassword) {
     // ! this.password will not be available as we have set select to false

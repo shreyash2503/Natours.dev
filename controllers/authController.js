@@ -6,7 +6,6 @@ import { User } from "../models/userModel.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import AppError from '../utils/appError.js';
 import sendEmail from '../utils/email.js';
-import { decode } from 'punycode';
 
 
 const signToken = id => {
@@ -17,6 +16,16 @@ const signToken = id => {
 
 const createSendToken = (user, statusCode, res) => {
     const token = signToken(user._id);
+    const cookieOptions = {
+        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+        //secure: true, // ! The cookie will be send only if the connection is HTTPs
+        httpOnly: true // ! The browser cannot manipulate the cookie
+    }
+    if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+    user.password = undefined; // We dont want the response of the route to contain the password
+    // so we make it undefined but note we are not saving the user so changes will not occur actually
+    res.cookie('jwt', token, cookieOptions);
     res.status(statusCode).json({
         status: 'success',
         token,

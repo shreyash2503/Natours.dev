@@ -1,8 +1,12 @@
 import express from 'express';
 import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import mongoSanitize from 'express-mongo-sanitize';
+import xss from 'xss-clean';
+import hpp from 'hpp';
 const app = express();
 import AppError from './utils/appError.js'
-
 import tourRouter from './routes/tourRoutes.js';
 import userRouter from './routes/userRoutes.js';
 const __filename = fileURLToPath(import.meta.url);
@@ -12,10 +16,40 @@ import { dirname } from 'path';
 import { globalErrorHandler } from './controllers/errorController.js';
 //Middleware
 //console.log(process.env.NODE_ENV);
+app.use(helmet());
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
-app.use(express.json());
+
+const limiter = rateLimit({
+    max: 100,
+    windowMs: 60 * 60 * 1000,
+    message: 'Too many requests from this IP, Please try again after some time'
+});
+
+app.use('/api', limiter);
+
+app.use(express.json({
+    limit: '10kb'
+}));
+//Data Sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+//Data sanitization against XSS
+app.use(xss()); // cross side scripting
+
+// Prevent parameter pollution
+app.use(hpp({
+    whitelist: [
+        'duration',
+        'ratingsQuantity',
+        'ratingsAverage',
+        'maxGroupSize',
+        'difficulty',
+        'price'
+    ]
+}));
+
 app.use(express.static(`${__dirname}/public`));
 
 // app.use((req, res, next) => {
