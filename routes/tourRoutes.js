@@ -1,7 +1,7 @@
 import express from 'express';
 import fs from 'fs';
 import { getAllTours, createTour, updateTour, deleteTour, getTour, checkBody, aliasTopTours, getTourStats, getMonthlyPlan } from '../controllers/tourController.js';
-import { protect } from '../controllers/authController.js';
+import { protect, restrictTo } from '../controllers/authController.js';
 
 const Router = express.Router();
 Router.param('id', (req, res, next, val) => {
@@ -31,7 +31,10 @@ Router
     .route('/:id')
     .get(getTour)
     .patch(updateTour)
-    .delete(deleteTour);
+    .delete(
+        protect,
+        restrictTo('admin', 'lead-guide'),
+        deleteTour);
 
 export default Router;
 
