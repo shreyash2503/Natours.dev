@@ -2,6 +2,7 @@ import express from 'express';
 import { User } from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import { catchAsync } from '../utils/catchAsync.js ';
+import { deleteOne, updateOne } from './handlerFactory.js';
 
 
 const filterObj = (obj, ...allowedFields) => {
@@ -60,6 +61,8 @@ export const deleteMe = catchAsync(async (req, res, next) => {
 })
 
 
+
+
 export const createUser = (req, res) => {
     res.status(500).json({
         status: 'error',
@@ -75,17 +78,7 @@ export const getUser = (req, res) => {
 
 }
 
-export const updateUser = (req, res) => {
-    res.status(500).json({
-        status: 'error',
-        message: 'This route is not yet defined'
-    })
+// Do Not update password with this!
+export const updateUser = updateOne(User);
 
-}
-export const deleteUser = (req, res) => {
-    res.status(500).json({
-        status: 'error',
-        message: 'This route is not yet defined'
-    })
-
-}
+export const deleteUser = deleteOne(User);

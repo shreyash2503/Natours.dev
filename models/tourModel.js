@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import slugify from 'slugify';
-import validator from 'validator';
+//import validator from 'validator';
+//import { User } from './userModel.js';
 
 const tourSchema = new mongoose.Schema({
     name: {
@@ -10,7 +11,7 @@ const tourSchema = new mongoose.Schema({
         trim: true,
         maxLength: [40, 'A tour name must have less or equal than 40 characters'],
         minLenght: [10, 'A tour name must have more than 10 characters'],
-        validate: [validator.isAlpha, 'Tour name can only contain characters']
+        //validate: [validator.isAlpha, 'Tour name can only contain characters']
     },
     duration: {
         type: Number,
@@ -75,7 +76,37 @@ const tourSchema = new mongoose.Schema({
         type: Boolean,
         default: false
 
-    }
+    },
+    startLocation: {
+        // GeoJSON
+        type: {
+            type: String,
+            default: 'Point',
+            enum: ['Point']
+        },
+        coordinates: [Number],
+        address: String,
+        description: String
+    },
+    locations: [
+        {
+            type: {
+                type: String,
+                default: 'Point',
+                enum: ['Point']
+            },
+            coordinates: [Number],
+            address: String,
+            description: String,
+            day: Number
+        }
+    ],
+    guides: [
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: 'User'
+        }
+    ]
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
@@ -85,6 +116,13 @@ tourSchema.virtual('durationWeeks').get(function () {
     return this.duration / 7;
 });
 
+
+// ! Virtual Populate
+tourSchema.virtual('reviews', {
+    ref: 'Review',
+    foreignField: 'tour',
+    localField: '_id'
+})
 // ! Document Middleware
 // & The pre middleware is executed before the .save() and .create() methods
 // & Writing the pre middleware
@@ -106,6 +144,13 @@ tourSchema.post('save', function (doc, next) {
     next();
 });
 
+// ! Code for embedding documents manually
+
+// tourSchema.pre('save', async function (next) {
+//     const guidesPromises = this.guides.map(async id => await User.findById(id))
+//     this.guides = await Promise.all(guidesPromises)
+//     next();
+// })
 
 
 
@@ -113,6 +158,10 @@ tourSchema.post('save', function (doc, next) {
 tourSchema.pre(/^find/, function (next) { // ! the ^ is used to find the word specified after it in the beigining of the sentence (Regex)
     // console.log(this.find());
     this.find({ secretTour: { $ne: true } }) // ! $ne is the not equal to operator
+    this.populate({
+        path: 'guides',
+        select: '-_v -passwordChangedAt'
+    });
     this.start = Date.now();
     next();
 });

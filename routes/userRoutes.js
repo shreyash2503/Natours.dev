@@ -1,6 +1,7 @@
 import express from 'express';
 import { getAllUsers, createUser, getUser, updateUser, deleteUser, updateMe, deleteMe } from '../controllers/userController.js';
-import { forgotPassword, login, protect, resetPassword, signUp, updatePassword } from '../controllers/authController.js';
+import { forgotPassword, login, protect, resetPassword, restrictTo, signUp, updatePassword } from '../controllers/authController.js';
+
 //? Routes
 const Router = express.Router();
 
@@ -21,5 +22,7 @@ Router
     .get(getUser)
     .patch(updateUser)
     .delete(deleteUser);
+
+
 
 export default Router;

@@ -1,13 +1,16 @@
 import express from 'express';
-import fs from 'fs';
 import { getAllTours, createTour, updateTour, deleteTour, getTour, checkBody, aliasTopTours, getTourStats, getMonthlyPlan } from '../controllers/tourController.js';
 import { protect, restrictTo } from '../controllers/authController.js';
-
+import reviewRouter from './reviewRoutes.js';
 const Router = express.Router();
 Router.param('id', (req, res, next, val) => {
     console.log(`Tour id is ${val}`);
     next();
 })
+
+
+
+Router.use('/:tourId/reviews', reviewRouter);
 
 
 Router
@@ -34,7 +37,10 @@ Router
     .delete(
         protect,
         restrictTo('admin', 'lead-guide'),
-        deleteTour);
+        deleteTour
+    );
+
+
 
 export default Router;
 
