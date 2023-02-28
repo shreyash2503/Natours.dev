@@ -98,7 +98,11 @@ export const getAll = Model => catchAsync(async (req, res) => {
     // }
     //{difficulty: 'easy', duration:{$gte:5}}
     // EXECUTE QUERY
+
+
+    // const docs = await features.query.explain();
     const docs = await features.query;
+
     // const tours = Tour.find()
     //     .where('duration')
     //     .equals(5)
