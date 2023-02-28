@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllUsers, createUser, getUser, updateUser, deleteUser, updateMe, deleteMe } from '../controllers/userController.js';
+import { getAllUsers, createUser, getUser, updateUser, deleteUser, updateMe, deleteMe, getMe } from '../controllers/userController.js';
 import { forgotPassword, login, protect, resetPassword, restrictTo, signUp, updatePassword } from '../controllers/authController.js';
 
 //? Routes
@@ -9,12 +9,20 @@ Router.post('/signup', signUp);
 Router.post('/login', login);
 Router.post('/forgotPassword', forgotPassword);
 Router.patch('/resetPassword/:token', resetPassword);
-Router.post('/updatePassword', protect, updatePassword);
-Router.patch('/updateMe', protect, updateMe)
-Router.delete('/deleteMe', protect, deleteMe)
+
+
+Router.use(protect); // ! Protect all the routes that come after this point
+
+
+Router.post('/updatePassword', updatePassword);
+Router.patch('/updateMe', updateMe)
+Router.delete('/deleteMe', deleteMe);
+Router.get('/me', getMe, getUser);
+
+Router.use(restrictTo('admin'))
 Router
     .route('/')
-    .get(getAllUsers)
+    .get(protect, getAllUsers)
     .post(createUser);
 
 Router

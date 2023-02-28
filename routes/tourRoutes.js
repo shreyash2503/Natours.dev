@@ -23,17 +23,25 @@ Router
 
 Router
     .route('/monthly-plan/:year')
-    .get(getMonthlyPlan);
+    .get(
+        protect,
+        restrictTo('admin', 'lead-guide', 'guide'),
+        getMonthlyPlan
+    );
 
 Router
     .route('/')
     .get(protect, getAllTours)
-    .post(checkBody, createTour);
+    .post(protect, restrictTo('admin', 'lead-guide'), checkBody, createTour);
 
 Router
     .route('/:id')
     .get(getTour)
-    .patch(updateTour)
+    .patch(
+        protect,
+        restrictTo('admin', 'lead-guide'),
+        updateTour
+    )
     .delete(
         protect,
         restrictTo('admin', 'lead-guide'),
@@ -43,5 +51,3 @@ Router
 
 
 export default Router;
-
-// ? Python is the best programming language 

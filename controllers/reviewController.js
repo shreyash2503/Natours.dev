@@ -1,29 +1,27 @@
 import { Review } from "../models/reviewModel.js";
-import APIFeatures from "../utils/apiFeatures.js";
-import { catchAsync } from "../utils/catchAsync.js";
-import { createOne, deleteOne, updateOne } from "./handlerFactory.js";
+import { createOne, deleteOne, getAll, getOne, updateOne } from "./handlerFactory.js";
 
 
-export const getAllReview = catchAsync(async (req, res) => {
-    let filter = {};
-    if (req.params.tourId) filter = { tour: req.params.tourId }
+export const getAllReview = getAll(Review);
+// catchAsync(async (req, res) => {
 
-    let features = new APIFeatures(Review.find(filter), req.query)
-        .filter()
-        .sorted()
-        .fieldLimiting()
-        .pagination();
-    const reviews = await features.query;
 
-    res.status(200).json({
-        status: 'success',
-        requestedAt: req.requestTime,
-        results: reviews.length,
-        data: {
-            reviews
-        }
-    })
-});
+//     let features = new APIFeatures(Review.find(filter), req.query)
+//         .filter()
+//         .sorted()
+//         .fieldLimiting()
+//         .pagination();
+//     const reviews = await features.query;
+
+//     res.status(200).json({
+//         status: 'success',
+//         requestedAt: req.requestTime,
+//         results: reviews.length,
+//         data: {
+//             reviews
+//         }
+//     })
+// });
 
 export const setTourUserIds = (req, res, next) => {
     if (!req.body.tour) req.body.tour = req.params.tourId;
@@ -53,3 +51,4 @@ export const setTourUserIds = (req, res, next) => {
 export const createReview = createOne(Review);
 export const updateReview = updateOne(Review);
 export const deleteReview = deleteOne(Review);
+export const getReview = getOne(Review);
