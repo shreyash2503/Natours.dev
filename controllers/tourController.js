@@ -4,6 +4,7 @@
 // import { fileURLToPath } from 'url';
 // import { dirname } from 'path';
 import { Tour } from '../models/tourModel.js';
+import AppError from '../utils/appError.js';
 import { catchAsync } from '../utils/catchAsync.js';
 // const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`))
 import { createOne, deleteOne, getAll, getOne, updateOne } from './handlerFactory.js';
@@ -168,9 +169,67 @@ export const getMonthlyPlan = catchAsync(async (req, res) => {
         data: {
             plan
         }
-    })
+    });
+});
 
+
+//latitude and longitude
+export const getToursWithin = catchAsync(async (req, res, next) => {
+    const { distance, latlng, unit } = req.params;
+    const [lat, lng] = latlng.split(",");
+    const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+    if (!lat || !lng) {
+        next(new AppError("Please provide latitude and longitude in the format lat,lng ", 400));
+    }
+    const tours = await Tour.find({ startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } } });
+    res.status(200).json({
+        status: 'success',
+        results: tours.length,
+        data: {
+            data: tours
+        }
+    });
+});
+
+export const getDistances = catchAsync(async (req, res, next) => {
+    const { latlng, unit } = req.params;
+    const [lat, lng] = latlng.split(",");
+    const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+    if (!lat || !lng) {
+        next(new AppError('Pleases provide latitude and longitude in the format lat,lng'));
+    };
+
+    const distances = await Tour.aggregate([
+        {
+            $geoNear: {
+                near: {
+                    type: 'Point',
+                    coordinates: [lng * 1, lat * 1]
+                },
+                distanceField: 'distance',
+                distanceMultiplier: multiplier  // * => Convert the distance to kilometer
+
+            }                     // $geoNear always needs to be the first stage in aggregation pipline
+            // The field we are quering with $geoNear must be a geospatial index
+        },
+        {
+            $project: {
+                distance: 1,
+                name: 1
+            }
+        }
+    ]);
+
+    res.status(200).json({
+        status: 'success',
+        results: distances.length,
+        data: {
+            data: distances
+        }
+    })
 })
+
+
 
 
 

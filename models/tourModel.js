@@ -116,7 +116,8 @@ const tourSchema = new mongoose.Schema({
 //tourSchema.index({ price: 1 }) // ! 1 means sorting the prices in ascending order -1 means sorting the indexes in descending order
 //Compound Indexing
 tourSchema.index({ price: 1, ratingsAverage: -1 })
-tourSchema.index({ slug: 1 })
+tourSchema.index({ slug: 1 });
+tourSchema.index({ 'startLocation.coordinates': "2dsphere" });
 
 
 tourSchema.virtual('durationWeeks').get(function () {
@@ -177,11 +178,11 @@ tourSchema.post(/^find/, function (docs, next) {
     next();
 })
 // Aggregation middleware
-tourSchema.pre('aggregate', function (next) {
-    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } }); // ! This will hide the secret Tours in aggregation pipeline
-    // console.log(this);
-    next();
-})
+// tourSchema.pre('aggregate', function (next) {
+//     this.pipeline().unshift({ $match: { secretTour: { $ne: true } } }); // ! This will hide the secret Tours in aggregation pipeline
+//     // console.log(this);
+//     next();
+// })
 
 
 export const Tour = mongoose.model('Tour', tourSchema);

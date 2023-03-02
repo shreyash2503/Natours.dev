@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllTours, createTour, updateTour, deleteTour, getTour, checkBody, aliasTopTours, getTourStats, getMonthlyPlan } from '../controllers/tourController.js';
+import { getAllTours, createTour, updateTour, deleteTour, getTour, checkBody, aliasTopTours, getTourStats, getMonthlyPlan, getToursWithin, getDistances } from '../controllers/tourController.js';
 import { protect, restrictTo } from '../controllers/authController.js';
 import reviewRouter from './reviewRoutes.js';
 const Router = express.Router();
@@ -28,6 +28,16 @@ Router
         restrictTo('admin', 'lead-guide', 'guide'),
         getMonthlyPlan
     );
+
+
+Router
+    .route('/distances/:latlng/unit/:unit')
+    .get(getDistances)
+
+Router
+    .route('/tours-within/:distance/center/:latlng/unit/:unit')
+    .get(getToursWithin)
+
 
 Router
     .route('/')
