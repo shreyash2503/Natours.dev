@@ -21,7 +21,8 @@ export const checkBody = ((req, res, next) => {
         status: 'fail',
         message: 'Invalid data sent!'
     })
-})
+});
+
 
 //Middleware for aliasing top 5 cheap and best tours
 
