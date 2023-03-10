@@ -76,6 +76,8 @@ export const protect = catchAsync(async (req, res, next) => {
         //console.log(req.headers.authorization.split(' ')[1]);
         //console.log(req.headers.authorization.split(' '));
         //console.log(token);
+    } else if (req.cookies.jwt) {
+        token = req.cookies.jwt;
     }
     console.log(token);
     if (!token) {
@@ -96,6 +98,36 @@ export const protect = catchAsync(async (req, res, next) => {
     req.user = freshUser;
     next();
 })
+
+// Only for rendered pages, no errors
+export const isLoggedIn = catchAsync(async (req, res, next) => {
+    // 1). Getting token and check if it exists
+    let token;
+    console.log("hello from protected route");
+    if (req.cookies.jwt) {
+        try {
+            token = req.cookies.jwt;
+            // 2). Verification of token
+            const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+            //console.log(decoded);
+            // 3). Check if user still exists
+            const freshUser = await User.findById(decoded.id);
+            if (!freshUser) {
+                return next();
+            }
+            // 4). Check if user changed password after the token was issued
+            if (freshUser.changedPasswordAfter(decoded.iat)) {
+                return next()
+            }
+            // A logged in user already exists
+            res.locals.user = freshUser;
+            return next();
+        } catch (e) {
+            return next();
+        }
+    }
+    next();
+});
 
 
 
@@ -214,5 +246,16 @@ export const updatePassword = catchAsync(async (req, res, next) => {
         status: 'success',
         token
     })
-})
+});
+
+
+export const logout = (req, res) => {
+    res.cookie('jwt', 'loggedout', {
+        expires: new Date(Date.now() + 10 * 1000),
+        httpOnly: true
+    });
+    res.status(200).json({
+        status: 'success'
+    })
+}
 

@@ -18,9 +18,22 @@ export const getTour = catchAsync(async (req, res) => {
         path: 'reviews',
         fields: 'review rating user'
     });
+    if (!tour) {
+        return next(new AppError('There is no tour with that name', 404));
+    }
+
     res.status(200)
         .render('tour', {
             title: `${tour.name} Tour`,
             tour
         })
 });
+
+export const getLogin = catchAsync(async (req, res) => {
+    res
+        .status(200)
+        .render('login', {
+            title: 'Log into your account'
+        });
+
+})

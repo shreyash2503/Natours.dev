@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
 import hpp from 'hpp';
+import cookieParser from 'cookie-parser';
 
 
 const app = express();
@@ -26,12 +27,14 @@ import { globalErrorHandler } from './controllers/errorController.js';
 //Middleware
 //console.log(process.env.NODE_ENV);
 app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 
 const scriptSrcUrls = [
     "https://api.tiles.mapbox.com/",
     "https://api.mapbox.com/",
+    " https://cdnjs.cloudflare.com/"
 ];
 const styleSrcUrls = [
     "https://api.mapbox.com/",
@@ -43,6 +46,10 @@ const connectSrcUrls = [
     "https://a.tiles.mapbox.com/",
     "https://b.tiles.mapbox.com/",
     "https://events.mapbox.com/",
+    "ws://localhost:63110/",
+    "ws://localhost:*/",
+    "https://bundle.js:*"
+
 ];
 const fontSrcUrls = [
     'fonts.googleapis.com',
@@ -71,9 +78,7 @@ app.use(
 
 
 
-if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
-}
+
 
 const limiter = rateLimit({
     max: 100,
@@ -86,6 +91,7 @@ app.use('/api', limiter);
 app.use(express.json({
     limit: '10kb'
 }));
+app.use(cookieParser());
 //Data Sanitization against NoSQL query injection
 app.use(mongoSanitize());
 
@@ -104,7 +110,6 @@ app.use(hpp({
     ]
 }));
 
-app.use(express.static(path.join(__dirname, 'public')));
 
 // app.use((req, res, next) => {
 //     console.log("Hello from the middleware😎😎");
@@ -113,7 +118,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString();
-    console.log(req.headers);
+    console.log(req.cookies);
     next();
 })
 
