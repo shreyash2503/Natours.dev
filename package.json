@@ -9,8 +9,10 @@
   },
   "scripts": {
     "start": "nodemon server.js",
+    "start:prod": "NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
-    "watch:js": "parcel watch ./public/js/index.js --dist-dir ./public/js/bundled"
+    "watch:js": "parcel watch ./public/js/index.js --dist-dir ./public/js/bundled",
+    "build:js": "parcel watch ./public/js/index.js --dist-dir ./public/js/bundled"
   },
   "author": "",
   "license": "ISC",

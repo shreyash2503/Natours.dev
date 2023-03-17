@@ -1,8 +1,8 @@
 import express from 'express';
 const Router = express.Router();
-import { getLogin, getOverview } from '../controllers/viewsController.js';
+import { getAccount, getLogin, getOverview } from '../controllers/viewsController.js';
 import { getTour } from '../controllers/viewsController.js';
-import { isLoggedIn } from '../controllers/authController.js';
+import { isLoggedIn, protect } from '../controllers/authController.js';
 //* Template Rendering Routes
 // Router.get('/', (req, res) => {
 //     res.status(200).render('base', {
@@ -12,10 +12,10 @@ import { isLoggedIn } from '../controllers/authController.js';
 
 // });
 
-Router.use(isLoggedIn);
-Router.get('/', getOverview);
+Router.get('/', isLoggedIn, getOverview);
 Router.get('/tours/:slug', isLoggedIn, getTour);
-Router.get('/login', getLogin);
+Router.get('/login', isLoggedIn, getLogin);
+Router.get('/me', protect, getAccount);
 
 
 

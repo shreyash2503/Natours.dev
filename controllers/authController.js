@@ -96,6 +96,7 @@ export const protect = catchAsync(async (req, res, next) => {
         return next(new AppError('User recently changed the password! Please log in again', 401))
     }
     req.user = freshUser;
+    res.locals.user = freshUser;
     next();
 })
 
@@ -197,8 +198,6 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 
     //3) Update changedPasswordAt property for the use 
     //Done int the userModel.js as a pre save middleware 
-
-
     //4) Log the user in, send JWT
     createSendToken(user, 200, res);
 }
