@@ -1,6 +1,6 @@
 import express from 'express';
 const Router = express.Router();
-import { getAccount, getLogin, getOverview } from '../controllers/viewsController.js';
+import { getAccount, getLogin, getOverview, updateUserData } from '../controllers/viewsController.js';
 import { getTour } from '../controllers/viewsController.js';
 import { isLoggedIn, protect } from '../controllers/authController.js';
 //* Template Rendering Routes
@@ -18,6 +18,7 @@ Router.get('/login', isLoggedIn, getLogin);
 Router.get('/me', protect, getAccount);
 
 
+Router.post('/submit-user-data', protect, updateUserData);
 
 
 

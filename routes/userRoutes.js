@@ -1,8 +1,10 @@
 import express from 'express';
-import { getAllUsers, createUser, getUser, updateUser, deleteUser, updateMe, deleteMe, getMe } from '../controllers/userController.js';
+import { getAllUsers, createUser, getUser, updateUser, deleteUser, updateMe, deleteMe, getMe, uploadUserPhoto, resizeUserPhoto } from '../controllers/userController.js';
 import { forgotPassword, login, logout, protect, resetPassword, restrictTo, signUp, updatePassword } from '../controllers/authController.js';
 
-//? Routes
+
+
+
 const Router = express.Router();
 
 Router.post('/signup', signUp);
@@ -15,10 +17,13 @@ Router.patch('/resetPassword/:token', resetPassword);
 Router.use(protect); // ! Protect all the routes that come after this point
 
 
-Router.post('/updatePassword', updatePassword);
-Router.patch('/updateMe', updateMe)
+Router.patch('/updatePassword', updatePassword);
+Router.patch('/updateMe', uploadUserPhoto, resizeUserPhoto, updateMe)
 Router.delete('/deleteMe', deleteMe);
 Router.get('/me', getMe, getUser);
+
+
+// Below routes are for the admin to update
 
 Router.use(restrictTo('admin'))
 Router

@@ -560,10 +560,13 @@ function hmrAccept(bundle, id) {
 var _login = require("./login");
 var _polyfill = require("@babel/polyfill");
 var _mapbox = require("./mapbox");
+var _updateSettings = require("./updateSettings");
 //DOM elements
 const mapBox = document.getElementById("map");
-const loginForm = document.querySelector(".form");
+const loginForm = document.querySelector(".form--login");
 const logOutBtn = document.querySelector(".nav__el--logout");
+const updateSettingsForm = document.querySelector(".form-user-data");
+const userPasswordForm = document.querySelector(".form-user-password");
 //Values
 console.log("Hello");
 //Delegation
@@ -580,8 +583,34 @@ if (loginForm) loginForm.addEventListener("submit", (e)=>{
     (0, _login.login)(email, password);
 });
 if (logOutBtn) logOutBtn.addEventListener("click", (0, _login.logout));
+if (updateSettingsForm) updateSettingsForm.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    const form = new FormData();
+    form.append("name", document.getElementById("name").value);
+    form.append("email", document.getElementById("email").value);
+    form.append("photo", document.getElementById("photo").files[0]);
+    console.log(form);
+    await (0, _updateSettings.updateSettings)(form, "data");
+    window.location.reload();
+});
+if (userPasswordForm) userPasswordForm.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    document.querySelector(".btn--save-password").value = "Updating...";
+    const password = document.getElementById("password-current").value;
+    const confirmPassword = document.getElementById("password").value;
+    const newPassword = document.getElementById("password-confirm").value;
+    await (0, _updateSettings.updateSettings)({
+        password,
+        confirmPassword,
+        newPassword
+    }, "password");
+    document.querySelector("btn--save-password").value = "Save password";
+    document.getElementById("password-current").value = "";
+    document.getElementById("password").value = "";
+    document.getElementById("password-confirm").value = "";
+});
 
-},{"./login":"7yHem","@babel/polyfill":"dTCHC","./mapbox":"3zDlz"}],"7yHem":[function(require,module,exports) {
+},{"./login":"7yHem","@babel/polyfill":"dTCHC","./mapbox":"3zDlz","./updateSettings":"l3cGY"}],"7yHem":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "login", ()=>login);
@@ -11808,6 +11837,29 @@ const displayMap = (locations)=>{
     });
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["hTzJ5","f2QDv"], "f2QDv", "parcelRequire11c7")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"l3cGY":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "updateSettings", ()=>updateSettings);
+var _axios = require("axios");
+var _axiosDefault = parcelHelpers.interopDefault(_axios);
+var _alerts = require("./alerts");
+const updateSettings = async (data, type)=>{
+    // type is either 'password' or 'data'
+    try {
+        const url = type === "password" ? "updatePassword" : "updateMe";
+        const res = await (0, _axiosDefault.default)({
+            method: "PATCH",
+            url: `http://localhost:9000/api/v1/users/${url}`,
+            data: data
+        });
+        if (res.data.status === "success") (0, _alerts.showAlert)("success", `${type.toUpperCase()} updated successfully`);
+        console.log(res);
+    } catch (e) {
+        (0, _alerts.showAlert)("error", e.response.data.message);
+    }
+};
+
+},{"axios":"jo6P5","./alerts":"6Mcnf","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["hTzJ5","f2QDv"], "f2QDv", "parcelRequire11c7")
 
 //# sourceMappingURL=index.js.map
