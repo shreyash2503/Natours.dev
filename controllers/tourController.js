@@ -6,8 +6,73 @@
 import { Tour } from '../models/tourModel.js';
 import AppError from '../utils/appError.js';
 import { catchAsync } from '../utils/catchAsync.js';
+import sharp from 'sharp';
+import multer from 'multer'
 // const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`))
 import { createOne, deleteOne, getAll, getOne, updateOne } from './handlerFactory.js';
+
+
+const multerStorage = multer.memoryStorage();
+// * Here file is nothing but req.file that will be generated when we add the multer middleware
+/* 
+1)The reason that we removed the diskStorage function and added the memory storage function is =>
+    a). We need the resize the image everytime the user uploads one and to do this the image must be present in the RAM of the server
+    b). This is what memoryStorage does, it stores the image in the server's memory in the form of a Buffer(A small heap assigned to Binary data that can be manipulated)
+    c). Remeber that the memoryStorage does not persist the images in the server like the diskStorage function
+    d). You need to save the image manually
+    e). If you use the diskStorage the req.file.filename will be automatically assigned but for saving the image you need to assign 
+        the req.file.filename manually which is done in the <resizeUserPhoto> function here
+*/
+
+const multerFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image')) {
+        cb(null, true);
+    } else {
+        cb(new AppError('Not an image! Please upload only images', 400), false);
+    }
+}
+
+
+const upload = multer({
+    storage: multerStorage,
+    fileFilter: multerFilter
+});
+
+export const uploadTourImages = upload.fields([
+    { name: 'imageCover', maxCount: 1 },
+    { name: 'images', maxCount: 3 }
+]);
+
+
+// ! IF yow want to only upload multiple images of a single field
+/*
+    upload.array('images', 5);
+*/
+
+export const resizeTourImages = catchAsync(async (req, res, next) => {
+    req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`
+    if (!req.files.imageCover || !req.files.images) return next();
+    // 1). cover Image processing
+    await sharp(req.files.imageCover[0].buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${req.body.imageCover}`);
+    req.body.images = [];
+    await Promise.all(req.files.images.map(async (file, index) => {
+        const filename = `tour-${req.params.id}-${Date.now()}-${index + 1}.jpeg`;
+        await sharp(file.buffer)
+            .resize(2000, 1333)
+            .toFormat('jpeg')
+            .jpeg({ quality: 90 })
+            .toFile(`public/img/tours/${filename}`);
+        req.body.images.push(filename);
+    }));
+    console.log(req.body);
+
+    next();
+})
+
 
 export const getAllTours = getAll(Tour);
 

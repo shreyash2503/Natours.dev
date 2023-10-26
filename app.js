@@ -19,6 +19,7 @@ import tourRouter from './routes/tourRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import reviewRouter from './routes/reviewRoutes.js'
 import viewRouter from './routes/viewRoutes.js'
+import bookingsRouter from './routes/bookingRoutes.js'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 import { fileURLToPath } from 'url';
@@ -34,7 +35,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 const scriptSrcUrls = [
     "https://api.tiles.mapbox.com/",
     "https://api.mapbox.com/",
-    " https://cdnjs.cloudflare.com/"
+    "https://cdnjs.cloudflare.com/",
+    "https://js.stripe.com",
+
 ];
 const styleSrcUrls = [
     "https://api.mapbox.com/",
@@ -48,7 +51,8 @@ const connectSrcUrls = [
     "https://events.mapbox.com/",
     "ws://localhost:63110/",
     "ws://localhost:*/",
-    "https://bundle.js:*"
+    "https://bundle.js:*",
+    "https://js.stripe.com",
 
 ];
 const fontSrcUrls = [
@@ -58,7 +62,7 @@ const fontSrcUrls = [
 app.use(
     helmet.contentSecurityPolicy({
         directives: {
-            defaultSrc: ["'self'", 'blob:', 'https://*.mapbox.com'],
+            defaultSrc: ["'self'", 'blob:', 'https://*.mapbox.com', 'https://*.stripe.com'],
             connectSrc: ["'self'", ...connectSrcUrls],
             scriptSrc: ["'self'", ...scriptSrcUrls],
             styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
@@ -128,7 +132,7 @@ app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
-
+app.use('/api/v1/bookings', bookingsRouter);
 app.all('*', (req, res, next) => {
     // res.status(404).json({
     //     status: 'fail',

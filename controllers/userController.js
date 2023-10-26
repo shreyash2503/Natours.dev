@@ -49,6 +49,7 @@ export const uploadUserPhoto = upload.single('photo');
 
 //// ----------------------------------->
 
+
 const filterObj = (obj, ...allowedFields) => {
     const newObj = {}
     Object.keys(obj).forEach(el => {
@@ -61,12 +62,16 @@ const filterObj = (obj, ...allowedFields) => {
 
 
 
-export const resizeUserPhoto = (req, res, next) => {
+export const resizeUserPhoto = catchAsync(async (req, res, next) => {
     if (!req.file) return next();
     req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`; // refined the req.file.filename as we removed the diskStoreage code
-    sharp(req.file.buffer).resize(500, 500).toFormat('jpeg').jpeg({ quality: 90 }).toFile(`public/img/users/${req.file.filename}`);
+    await sharp(req.file.buffer)
+        .resize(500, 500)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/users/${req.file.filename}`);
     next();
-}
+});
 
 export const updateMe = catchAsync(async (req, res, next) => {
     // 1) Create error if user POSTS password data

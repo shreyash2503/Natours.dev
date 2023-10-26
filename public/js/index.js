@@ -1,13 +1,16 @@
-import { login, logout } from "./login";
+import { login, logout } from "./login.js";
+export const stripe = Stripe('pk_test_51Mv0XESH4yaZ8NIUHUCx1iAvO1yC5ovmx6oE3bgJHuwkPvOkQFv8VJRdmT1BvBD3bPtnZTWwAS58nZQWGPgCIN6M000GlDsKVn')
 import '@babel/polyfill';
-import { displayMap } from "./mapbox";
+import { displayMap } from "./mapbox.js";
 import { updateData, updateSettings } from "./updateSettings";
+import { bookTour } from "./stripe.js";
 //DOM elements
 const mapBox = document.getElementById('map');
 const loginForm = document.querySelector('.form--login');
 const logOutBtn = document.querySelector('.nav__el--logout');
 const updateSettingsForm = document.querySelector('.form-user-data');
 const userPasswordForm = document.querySelector('.form-user-password');
+const bookBtn = document.getElementById('book-tour');
 //Values
 
 console.log("Hello")
@@ -58,5 +61,13 @@ if (userPasswordForm) {
         document.getElementById('password').value = '';
         document.getElementById('password-confirm').value = '';
 
+    })
+}
+
+if (bookBtn) {
+    bookBtn.addEventListener('click', e => {
+        e.target.textContent = 'Processing...'
+        const { tourId } = e.target.dataset;
+        bookTour(tourId);
     })
 }
